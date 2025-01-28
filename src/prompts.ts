@@ -1,5 +1,7 @@
 const BASE_SYSTEM_PROMPT = `
 All code and any other additions must be production-ready and follow best practices.
+Do NOT truncate any existing code files.
+All code for the file must be included in your response.
 Respond ONLY with valid XML in this exact format:
 
 <response>
