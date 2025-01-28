@@ -1,5 +1,5 @@
-import { Octokit } from "@octokit/rest"
 
+import { Octokit } from "@octokit/rest"
 
 export class GithubService {
   private owner: string
@@ -74,40 +74,30 @@ export class GithubService {
   }
 
   async getRepositoryContents(path: string = ""): Promise<Array<{ path: string, content: string }>> {
-    const { data } = await this.oktokit.repos.getContent({
+    const response = await this.oktokit.repos.getContent({
       owner: this.owner,
       repo: this.repo,
       path
     })
 
-    // single file
-    if (!Array.isArray(data)) {
-      if (data.type === "file") {
-        const content = Buffer.from(data.content, "base64").toString("utf-8")
-        return [{ path, content }]
-      }
-      return []
-    }
-
-    // directory
-    const contents = await Promise.all(
-      data.map(async item => {
-        if (item.type === "dir") {
-          return this.getRepositoryContents(item.path)
-        } else if (item.type === "file") {
-          const fileData = await this.oktokit.repos.getContent({
-            owner: this.owner,
-            repo: this.repo,
-            path: item.path
-          })
-          if ("content" in fileData.data) {
-            const content = Buffer.from(fileData.data.content, "base64").toString("utf-8")
-            return [{ path: item.path, content }]
+    const files = await Promise.all(
+      response.data.map(async item => {
+        if (item.type === "file") {
+          return {
+            path: item.path,
+            content: Buffer.from(item.content, "base64").toString("utf-8")
           }
         }
+        
+        if (item.type === "dir") {
+          const dirFiles = await this.getRepositoryContents(item.path)
+          return dirFiles
+        }
+        
+        return []
       })
     )
 
-    return contents.flat()
+    return files.flat()
   }
 }
