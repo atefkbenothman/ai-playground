@@ -14,9 +14,8 @@
     "@octokit/rest": "^21.1.0",
     "@types/xml2js": "^0.4.14",
     "ai": "^4.1.9",
-    "xml2js": "^0.6.2",
     "dotenv": "^16.4.7",
-    "openai": "^4.80.1",
+    "fast-xml-parser": "^4.5.1",
     "tsx": "^4.19.2"
   }
 }

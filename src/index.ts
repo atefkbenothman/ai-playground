@@ -37,9 +37,6 @@ try {
 
   const { response, reasoning } = await generateAIResponse(completeSystemPrompt, userPrompt)
 
-  console.log("Reasoning:", reasoning)
-  console.log("Response:", response)
-
   // parse xml portion of response
   // extract pr metadata and updated files content from xml
   const content = parseXMLFromResponse(response)

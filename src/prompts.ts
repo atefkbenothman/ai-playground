@@ -1,23 +1,26 @@
 const BASE_SYSTEM_PROMPT = `
 All code and any other additions must be production-ready and follow best practices.
-Below is the current repository code:
-
-{REPO_CONTENT}
-
 Respond ONLY with valid XML in this exact format:
+
 <response>
   <pullRequest>
-    <title>Title of the pull request</title>
-    <body>Detailed description of the changes</body>
+    <title>{Title of the pull request}</title>
+    <body>{Detailed description of the changes}</body>
   </pullRequest>
   <files>
     <file>
       <path>{File name}</path>
-      <content>{TypeScript code here}</content>
+      <content><![CDATA[
+      // Your code here
+      ]]></content>
     </file>
     <!-- Additional files -->
   </files>
 </response>
+
+Below is the current repository code:
+
+{REPO_CONTENT}
 `
 
 export const PROMPTS = {

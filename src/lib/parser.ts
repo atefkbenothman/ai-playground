@@ -1,4 +1,4 @@
-import { parseStringPromise } from "xml2js"
+import { XMLParser } from "fast-xml-parser"
 
 
 export type PRMetadata = {
@@ -27,16 +27,22 @@ export function parseXMLFromResponse(response: string): string {
   return response.slice(start, end)
 }
 
-export async function extractModelResponse(response: string): Promise<PRContent> {
-  const parsed = await parseStringPromise(response)
+export async function extractModelResponse(xmlResponse: string): Promise<PRContent> {
+  const parser = new XMLParser({
+    isArray: (name) => {
+      return ["file"].includes(name)
+    },
+    ignoreAttributes: false,
+  })
+  const parsed = parser.parse(xmlResponse)
   const data: PRContent = {
     prMetadata: {
-      title: parsed.response.pullRequest[0].title[0],
-      body: parsed.response.pullRequest[0].body[0],
+      title: parsed.response.pullRequest.title,
+      body: parsed.response.pullRequest.body,
     },
-    files: parsed.response.files[0].file.map(f => ({
-      path: f.path[0],
-      content: f.content[0]
+    files: parsed.response.files.file.map(f => ({
+      path: f.path,
+      content: f.content
     }))
   }
   return data
