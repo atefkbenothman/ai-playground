@@ -2,7 +2,7 @@ import { config } from "dotenv"
 import { GithubService } from "./services/github"
 import { generateAIResponse } from "./services/ai"
 import { parseXMLFromResponse, extractModelResponse, formatRepoContents } from "./lib/parser"
-import { getOrBuildSystemPrompt } from "./prompts"
+import { BASE_SYSTEM_PROMPT } from "./prompts"
 import { readLineInterface } from "./lib/input"
 
 // load environment variables
@@ -25,7 +25,6 @@ const repoContent = await github.getRepositoryContents()
 const formattedRepoContents = formatRepoContents(repoContent)
 
 // get user inputs
-const systemPrompt = await readLineInterface.getInput("System message: ")
 const userPrompt = await readLineInterface.getInput("User message: ")
 const featureBranch = await readLineInterface.getInput("Branch name: ")
 
@@ -33,9 +32,7 @@ readLineInterface.close()
 
 /* create automated PR */
 try {
-  const completeSystemPrompt = getOrBuildSystemPrompt(systemPrompt, formattedRepoContents)
-
-  const { response, reasoning } = await generateAIResponse(completeSystemPrompt, userPrompt)
+  const { response, reasoning } = await generateAIResponse(BASE_SYSTEM_PROMPT, userPrompt)
 
   // parse xml portion of response
   // extract pr metadata and updated files content from xml
