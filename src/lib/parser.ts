@@ -41,3 +41,12 @@ export async function extractModelResponse(response: string): Promise<PRContent>
   }
   return data
 }
+
+export function formatRepoContents(files: FileContent[]): string {
+  return files.map(file => (
+    `===============================================\n` +
+    `File: ${file.path}\n` +
+    `===============================================\n` +
+    `${file.content}\n`
+  )).join("\n\n")
+}

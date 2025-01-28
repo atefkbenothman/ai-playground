@@ -1,7 +1,7 @@
 import { config } from "dotenv"
 import { GithubService } from "./services/github"
 import { generateAIResponse } from "./services/ai"
-import { parseXMLFromResponse, extractModelResponse } from "./lib/parser"
+import { parseXMLFromResponse, extractModelResponse, formatRepoContents } from "./lib/parser"
 import { getOrBuildSystemPrompt } from "./prompts"
 import { readLineInterface } from "./lib/input"
 
@@ -19,47 +19,50 @@ if (!github_owner || !github_repo || !github_token) {
 // setup github service
 const github = new GithubService(github_owner, github_repo, github_token);
 
-(async () => {
-  const systemPrompt = await readLineInterface.getInput("System message: ")
-  const userPrompt = await readLineInterface.getInput("User message: ")
-  const featureBranch = await readLineInterface.getInput("Branch name: ")
+// fetch repo contents
+console.log("Fetching files from:", github_repo)
+const repoContent = await github.getRepositoryContents()
+const formattedRepoContents = formatRepoContents(repoContent)
 
-  readLineInterface.close()
+// get user inputs
+const systemPrompt = await readLineInterface.getInput("System message: ")
+const userPrompt = await readLineInterface.getInput("User message: ")
+const featureBranch = await readLineInterface.getInput("Branch name: ")
 
-  /* create automated PR */
-  try {
-    const completeSystemPrompt = getOrBuildSystemPrompt(systemPrompt)
+readLineInterface.close()
 
-    const { response, reasoning } = await generateAIResponse(completeSystemPrompt, userPrompt)
+/* create automated PR */
+try {
+  const completeSystemPrompt = getOrBuildSystemPrompt(systemPrompt, formattedRepoContents)
 
-    console.log("Reasoning:", reasoning)
-    console.log("Response:", response)
+  const { response, reasoning } = await generateAIResponse(completeSystemPrompt, userPrompt)
 
-    // parse xml portion of response
-    // extract pr metadata and updated files content from xml
-    const content = parseXMLFromResponse(response)
-    const { prMetadata, files } = await extractModelResponse(content)
+  console.log("Reasoning:", reasoning)
+  console.log("Response:", response)
 
-    const defaultBranch = await github.getDefaultBranch()
+  // parse xml portion of response
+  // extract pr metadata and updated files content from xml
+  const content = parseXMLFromResponse(response)
+  const { prMetadata, files } = await extractModelResponse(content)
 
-    // create new branch for PR
-    await github.createBranch(featureBranch, defaultBranch)
+  const defaultBranch = await github.getDefaultBranch()
 
-    // create/update files included in PR
-    await github.updateFiles(featureBranch, files)
+  // create new branch for PR
+  await github.createBranch(featureBranch, defaultBranch)
 
-    // create PR
-    const pr = await github.createPullRequest(prMetadata.title, prMetadata.body, featureBranch, defaultBranch)
+  // create/update files included in PR
+  await github.updateFiles(featureBranch, files)
 
-    // create PR comment with model's reasoning
-    await github.addPullRequestComment(pr.number, `## AI Model's Reasoning Process\n\n${reasoning}\n\n## Generated Files\n${files.map((f) => `- ${f.path}`).join("\n")}`)
+  // create PR
+  const pr = await github.createPullRequest(prMetadata.title, prMetadata.body, featureBranch, defaultBranch)
 
-    console.log("Pull request successfully created:", pr.html_url)
-  } catch (err) {
-    console.error("Error:", err)
-    if (err === typeof Error) {
-      console.error("Error msg:", err.message)
-    }
+  // create PR comment with model's reasoning
+  await github.addPullRequestComment(pr.number, `## AI Model's Reasoning Process\n\n${reasoning}\n\n## Generated Files\n${files.map((f) => `- ${f.path}`).join("\n")}`)
+
+  console.log("Pull request successfully created:", pr.html_url)
+} catch (err) {
+  console.error("Error:", err)
+  if (err === typeof Error) {
+    console.error("Error msg:", err.message)
   }
-
-})()
+}
