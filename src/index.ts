@@ -1,3 +1,4 @@
+
 import { config } from "dotenv"
 import { GithubService } from "./services/github"
 import { generateAIResponse } from "./services/ai"
@@ -17,11 +18,16 @@ if (!github_owner || !github_repo || !github_token) {
 }
 
 // setup github service
-const github = new GithubService(github_owner, github_repo, github_token);
+const github = new GithubService(github_owner, github_repo, github_token)
 
 // fetch repo contents
 console.log("Fetching files from repo:", github_repo)
 const repoContent = await github.getRepositoryContents()
+console.log("\nRepository files and their content lengths:")
+repoContent.forEach(file => {
+  console.log(`- File: ${file.path} (${file.content.length} characters)`)
+})
+
 const formattedRepoContents = formatRepoContents(repoContent)
 
 // get user inputs
