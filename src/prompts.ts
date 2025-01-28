@@ -1,7 +1,8 @@
 const BASE_SYSTEM_PROMPT = `
 All code and any other additions must be production-ready and follow best practices.
-Do NOT truncate any existing code files.
-All code for the file must be included in your response.
+If you are editing an existing file, do NOT remove or overwrite any code unnecessarily.
+Only make the specific additions or deletions required for the changes.
+Your response must include the entire code for the file, with the modifications clearly applied.
 Respond ONLY with valid XML in this exact format:
 
 <response>
