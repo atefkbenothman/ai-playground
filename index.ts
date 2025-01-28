@@ -72,11 +72,11 @@ async function createAutomatedPR() {
       messages: [
         {
           role: "system",
-          content: "systemMsg"
+          content: SYSTEM_MSG
         },
         {
           role: "user",
-          content: "contentMsg"
+          content: USER_MSG
         }
       ]
     })
