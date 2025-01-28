@@ -20,19 +20,21 @@ if (!github_owner || !github_repo || !github_token) {
 const github = new GithubService(github_owner, github_repo, github_token);
 
 // fetch repo contents
-console.log("Fetching files from:", github_repo)
+console.log("Fetching files from repo:", github_repo)
 const repoContent = await github.getRepositoryContents()
 const formattedRepoContents = formatRepoContents(repoContent)
 
 // get user inputs
-const userPrompt = await readLineInterface.getInput("User message: ")
-const featureBranch = await readLineInterface.getInput("Branch name: ")
+const userPrompt = await readLineInterface.getInput("\nUser message: ")
+const featureBranch = await readLineInterface.getInput("\nBranch name: ")
 
 readLineInterface.close()
 
 /* create automated PR */
 try {
-  const { response, reasoning } = await generateAIResponse(BASE_SYSTEM_PROMPT, userPrompt)
+  const sytemPrompt = BASE_SYSTEM_PROMPT.replace("{REPO_CONTENT", formattedRepoContents)
+
+  const { response, reasoning } = await generateAIResponse(sytemPrompt, userPrompt)
 
   // parse xml portion of response
   // extract pr metadata and updated files content from xml
