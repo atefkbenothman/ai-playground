@@ -1,5 +1,5 @@
-import { Octokit } from "@octokit/rest"
 
+import { Octokit } from "@octokit/rest"
 
 export class GithubService {
   private owner: string
@@ -90,7 +90,7 @@ export class GithubService {
     })
   }
 
-  async getRepositoryContents(path: string = ""): Promise<Array<{ path: string, content: string }>> {
+  async getRepositoryContents(path: string = "", exclude: string[] = []): Promise<Array<{ path: string, content: string }>> {
     const { data } = await this.oktokit.repos.getContent({
       owner: this.owner,
       repo: this.repo,
@@ -100,8 +100,11 @@ export class GithubService {
     // single file
     if (!Array.isArray(data)) {
       if (data.type === "file") {
-        const content = Buffer.from(data.content, "base64").toString("utf-8")
-        return [{ path, content }]
+        if (!exclude.includes(data.path)) {
+          const content = Buffer.from(data.content, "base64").toString("utf-8")
+          return [{ path: data.path, content }]
+        }
+        return []
       }
       return []
     }
@@ -109,22 +112,30 @@ export class GithubService {
     // directory
     const contents = await Promise.all(
       data.map(async item => {
-        if (item.type === "dir") {
-          return this.getRepositoryContents(item.path)
-        } else if (item.type === "file") {
-          const fileData = await this.oktokit.repos.getContent({
-            owner: this.owner,
-            repo: this.repo,
-            path: item.path
-          })
-          if ("content" in fileData.data) {
-            const content = Buffer.from(fileData.data.content, "base64").toString("utf-8")
-            return [{ path: item.path, content }]
-          }
+        if (exclude.includes(item.path)) {
+          return []
         }
+
+        if (item.type === "dir") {
+          return this.getRepositoryContents(item.path, exclude)
+        } else if (item.type === "file") {
+          if (!exclude.includes(item.path)) {
+            const fileData = await this.oktokit.repos.getContent({
+              owner: this.owner,
+              repo: this.repo,
+              path: item.path
+            })
+            if ("content" in fileData.data) {
+              const content = Buffer.from(fileData.data.content, "base64").toString("utf-8")
+              return [{ path: item.path, content }]
+            }
+          }
+          return []
+        }
+        return []
       })
     )
 
-    return contents.flat()
+    return contents.flat().filter(Boolean)
   }
 }
