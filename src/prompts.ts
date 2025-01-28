@@ -1,9 +1,10 @@
 const BASE_SYSTEM_PROMPT = `
-All code and any other additions must be production-ready and follow best practices.
-If you are editing an existing file, do NOT remove or overwrite any code unnecessarily.
-Only make the specific additions or deletions required for the changes.
-Your response must include the entire code for the file, with the modifications clearly applied.
-Respond ONLY with valid XML in this exact format:
+- All code and any other additions must be production-ready and follow best practices.
+- If you are editing an existing file, do NOT remove or overwrite any code unnecessarily.
+- Only make the specific additions or deletions required for the changes.
+- Your response must include the entire code for the file, with the modifications clearly applied.
+
+YOU MUST respond ONLY with valid XML in this exact format:
 
 <response>
   <pullRequest>
