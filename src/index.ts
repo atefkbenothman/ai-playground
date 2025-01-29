@@ -6,6 +6,23 @@ import { parseXMLFromResponse, extractModelResponse, formatRepoContents } from "
 import { BASE_SYSTEM_PROMPT } from "./prompts"
 import { readLineInterface } from "./lib/input"
 
+
+const FILE_EXLCUDE_LIST = [
+  "README.md",
+  "LICENSE",
+  ".github",
+  ".gitignore",
+  ".pre-commit-config.yaml",
+  "test",
+  "ruff.toml",
+  "requirements.txt",
+  "public",
+  "package.json",
+  "package-lock.json",
+  "vite.config.ts",
+  "postcss.config.js",
+]
+
 // load environment variables
 config({ path: ".env" })
 
@@ -22,11 +39,13 @@ const github = new GithubService(github_owner, github_repo, github_token)
 
 // fetch repo contents
 console.log("Fetching files from repo:", github_repo)
-const repoContent = await github.getRepositoryContents()
-console.log("\nRepository files and their content lengths:")
-repoContent.forEach(file => {
+const repoContent = await github.getRepositoryContents("", FILE_EXLCUDE_LIST)
+console.log("\nRepository files sorted by content length:")
+const sortedFiles = repoContent.sort((a, b) => b.content.length - a.content.length)
+sortedFiles.forEach(file => {
   console.log(`- File: ${file.path} (${file.content.length} characters)`)
 })
+console.log(`Total characters in all files: ${sortedFiles.reduce((acc, file) => acc + file.content.length, 0)}`)
 
 const formattedRepoContents = formatRepoContents(repoContent)
 
