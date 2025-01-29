@@ -1,4 +1,3 @@
-
 import { config } from "dotenv"
 import { GithubService } from "./services/github"
 import { generateAIResponse } from "./services/ai"
@@ -6,22 +5,8 @@ import { parseXMLFromResponse, extractModelResponse, formatRepoContents } from "
 import { BASE_SYSTEM_PROMPT } from "./prompts"
 import { readLineInterface } from "./lib/input"
 
-
-const FILE_EXLCUDE_LIST = [
-  "README.md",
-  "LICENSE",
-  ".github",
-  ".gitignore",
-  ".pre-commit-config.yaml",
-  "test",
-  "ruff.toml",
-  "requirements.txt",
-  "public",
-  "package.json",
-  "package-lock.json",
-  "vite.config.ts",
-  "postcss.config.js",
-]
+// Load exclude list from JSON file
+const FILE_EXLCUDE_LIST = require("../exclude-list.json")
 
 // load environment variables
 config({ path: ".env" })

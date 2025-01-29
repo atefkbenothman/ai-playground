@@ -1,0 +1,15 @@
+[
+  "README.md",
+  "LICENSE",
+  ".github",
+  ".gitignore",
+  ".pre-commit-config.yaml",
+  "test",
+  "ruff.toml",
+  "requirements.txt",
+  "public",
+  "package.json",
+  "package-lock.json",
+  "vite.config.ts",
+  "postcss.config.js"
+]
