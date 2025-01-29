@@ -39,32 +39,38 @@ export class GithubService {
     })
   }
 
-  async updateFiles(branchName: string, files: { path: string, content: string }[]): Promise<void> {
-    for (const file of files) {
-      const { data: fileData } = await this.oktokit.repos.getContent({
+  private async getFileSha(path: string): Promise<string | null> {
+    try {
+      const { data } = await this.oktokit.repos.getContent({
         owner: this.owner,
         repo: this.repo,
-        path: file.path
+        path
       })
-      if (fileData && "sha" in fileData) {
+      if (data && "sha" in data) {
+        return data.sha
+      }
+      return null
+    } catch (error) {
+      return null
+    }
+  }
+
+  async updateFiles(branchName: string, files: { path: string, content: string }[]): Promise<void> {
+    for (const file of files) {
+      try {
+        const sha = await this.getFileSha(file.path)
+        
         await this.oktokit.repos.createOrUpdateFileContents({
           owner: this.owner,
           repo: this.repo,
           path: file.path,
-          message: `Update ${file.path}`,
+          message: sha ? `Update ${file.path}` : `Create ${file.path}`,
           content: Buffer.from(file.content).toString("base64"),
-          sha: fileData.sha,
+          sha: sha,
           branch: branchName
         })
-      } else {
-        await this.oktokit.repos.createOrUpdateFileContents({
-          owner: this.owner,
-          repo: this.repo,
-          path: file.path,
-          message: `Create ${file.path}`,
-          content: Buffer.from(file.content).toString("base64"),
-          branch: branchName
-        });
+      } catch (error) {
+        console.error(`Error updating file ${file.path}:`, error.message)
       }
     }
   }
