@@ -1,4 +1,3 @@
-
 import { config } from "dotenv"
 import { GithubService } from "./services/github"
 import { generateAIResponse } from "./services/ai"
@@ -21,6 +20,7 @@ const FILE_EXLCUDE_LIST = [
   "package-lock.json",
   "vite.config.ts",
   "postcss.config.js",
+  "python", // Added python to exclude list
 ]
 
 // load environment variables
