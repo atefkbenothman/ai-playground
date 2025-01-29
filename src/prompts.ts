@@ -31,12 +31,3 @@ Required XML Response Format:
 <path>{Full path to the file}</path>
 <content><![CDATA[
    {COMPLETE file content with changes - NEVER truncate}
-   ]]></content>
-</file>
-<!-- Include additional <file> elements for each modified file -->
-</files>
-</response>
-
-Repository code for reference:
-{REPO_CONTENT}
-`
