@@ -1,0 +1,2 @@
+# Python runtime dependency
+python >= 3.8
