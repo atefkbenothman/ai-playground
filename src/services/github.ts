@@ -1,4 +1,3 @@
-
 import { Octokit } from "@octokit/rest"
 
 export class GithubService {
@@ -96,6 +95,12 @@ export class GithubService {
     })
   }
 
+  /**
+   * Gets repository contents while excluding files matching any of the patterns in the exclude array
+   * @param path The path to start fetching from
+   * @param exclude Array of patterns to exclude (e.g., "folder/", "*.js", "folder/**/*.txt")
+   * @returns Array of file objects with path and content
+   */
   async getRepositoryContents(path: string = "", exclude: string[] = []): Promise<Array<{ path: string, content: string }>> {
     const { data } = await this.oktokit.repos.getContent({
       owner: this.owner,
@@ -106,7 +111,7 @@ export class GithubService {
     // single file
     if (!Array.isArray(data)) {
       if (data.type === "file") {
-        if (!exclude.includes(data.path)) {
+        if (!this.matchesIgnorePattern(data.path, exclude)) {
           const content = Buffer.from(data.content, "base64").toString("utf-8")
           return [{ path: data.path, content }]
         }
@@ -118,14 +123,14 @@ export class GithubService {
     // directory
     const contents = await Promise.all(
       data.map(async item => {
-        if (exclude.includes(item.path)) {
+        if (this.matchesIgnorePattern(item.path, exclude)) {
           return []
         }
 
         if (item.type === "dir") {
           return this.getRepositoryContents(item.path, exclude)
         } else if (item.type === "file") {
-          if (!exclude.includes(item.path)) {
+          if (!this.matchesIgnorePattern(item.path, exclude)) {
             const fileData = await this.oktokit.repos.getContent({
               owner: this.owner,
               repo: this.repo,
@@ -143,5 +148,22 @@ export class GithubService {
     )
 
     return contents.flat().filter(Boolean)
+  }
+
+  private matchesIgnorePattern(filePath: string, patterns: string[]): boolean {
+    return patterns.some(pattern => {
+      // Convert pattern to regex
+      let regexPattern = pattern.replace(/\./g, "\\.")
+      regexPattern = regexPattern.replace("**", ".*").replace("*", "[^/]*")
+      regexPattern = `^${regexPattern}$`
+      
+      try {
+        const regex = new RegExp(regexPattern)
+        return regex.test(filePath)
+      } catch (error) {
+        // Invalid regex pattern, skip matching
+        return false
+      }
+    })
   }
 }
